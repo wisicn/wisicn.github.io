@@ -2,30 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Wissen Xue Blog</title>
-    <link>http://h.acethon.com/</link>
+    <link>https://h.acethon.com/</link>
     <description>Recent content on Wissen Xue Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Thu, 26 Dec 2019 23:02:34 +0800</lastBuildDate>
     
-	<atom:link href="http://h.acethon.com/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://h.acethon.com/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>About</title>
-      <link>http://h.acethon.com/about/</link>
+      <link>https://h.acethon.com/about/</link>
       <pubDate>Thu, 26 Dec 2019 23:02:34 +0800</pubDate>
       
-      <guid>http://h.acethon.com/about/</guid>
+      <guid>https://h.acethon.com/about/</guid>
       <description>I’m a senior solutions architecture working in CDN&amp;amp;Edge Computing Area. I like Docker/Python/Git. This blog will be used as my technical notes mainly.</description>
     </item>
     
     <item>
       <title>The first post in this blog</title>
-      <link>http://h.acethon.com/posts/my-first-post/</link>
+      <link>https://h.acethon.com/posts/my-first-post/</link>
       <pubDate>Wed, 25 Dec 2019 21:46:04 +0800</pubDate>
       
-      <guid>http://h.acethon.com/posts/my-first-post/</guid>
+      <guid>https://h.acethon.com/posts/my-first-post/</guid>
       <description>This is my new blog hosting on github pages with Hugo, I will write my notes mostly in technical area and sometimes in other area such as thoughts, stories, ideas and life
 Hope this may help myself and others.</description>
     </item>
