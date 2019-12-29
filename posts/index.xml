@@ -6,10 +6,19 @@
     <description>Recent content in Posts on Wissen Xue Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 27 Dec 2019 17:49:23 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 29 Dec 2019 13:21:02 +0800</lastBuildDate>
     
 	<atom:link href="https://h.acethon.com/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Mac OS X Backup in Single Mode</title>
+      <link>https://h.acethon.com/posts/mac-os-x-recovery-in-single-mode/</link>
+      <pubDate>Sun, 29 Dec 2019 13:21:02 +0800</pubDate>
+      
+      <guid>https://h.acethon.com/posts/mac-os-x-recovery-in-single-mode/</guid>
+      <description>Backup files in Mac OS X single mode  https://thinkinginsoftware.blogspot.com/2014/03/mac-osx-not-booting-make-backup-from.html https://alvinalexander.com/mac-os-x/mac-osx-single-user-mode-usb-drive https://jesperh.se/osx-backup-from-single-user-mode/ https://gist.github.com/kwcto/45e0b985071fad655e17  Migrating Outlook 2016 from one Mac to a new one  https://answers.microsoft.com/en-us/msoffice/forum/all/migrating-outlook-2016-from-one-mac-to-a-new-one/e21b2fc2-b601-4abe-bcdc-bdedad876075  </description>
+    </item>
     
     <item>
       <title>A quick notes on how to use Hugo to do personal publication</title>
