@@ -6,10 +6,20 @@
     <description>Recent content on Wissen Xue Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 29 Dec 2019 13:21:02 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 29 Dec 2019 16:10:48 +0800</lastBuildDate>
     
 	<atom:link href="https://h.acethon.com/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Raspberry Pi Time Machine</title>
+      <link>https://h.acethon.com/posts/raspberry-pi-time-machine/</link>
+      <pubDate>Sun, 29 Dec 2019 16:10:48 +0800</pubDate>
+      
+      <guid>https://h.acethon.com/posts/raspberry-pi-time-machine/</guid>
+      <description>https://gregology.net/2018/09/raspberry-pi-time-machine/  This one is useful for the USB disk in fstab and delay mount in crontab
+ https://github.com/odarriba/docker-timemachine  I always use Docker as possible as I can to simplify the deployment</description>
+    </item>
     
     <item>
       <title>Mac OS X Backup in Single Mode</title>
