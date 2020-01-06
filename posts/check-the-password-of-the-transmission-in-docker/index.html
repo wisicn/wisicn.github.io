@@ -17,21 +17,25 @@
     
     
 
-<title>Raspberry Pi Time Machine • Wissen Xue Blog</title>
+<title>How Check the Password of the Transmission in Docker • Wissen Xue Blog</title>
 
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Raspberry Pi Time Machine"/>
-<meta name="twitter:description" content="https://gregology.net/2018/09/raspberry-pi-time-machine/  This one is useful for the USB disk in fstab and delay mount in crontab
- https://github.com/odarriba/docker-timemachine  I always use Docker as possible as I can to simplify the deployment"/>
+<meta name="twitter:title" content="How Check the Password of the Transmission in Docker"/>
+<meta name="twitter:description" content="how to start a Transmission in Docker docker run --name transmissionbt --restart=always -d -e TZ=Hongkong -e USERID=1001 -e GROUPID=1001 -v /your/local/path/to/transmission:/var/lib/transmission-daemon -p 9091:9091 -p 51413:51413 dperson/transmission how to check the password: first get the console of the container:
+docker exec -it transmissionbt /bin/sh
+then in the shell console of the container:
+ps -ef | grep transmission you will seee the password transmis 0:11 transmission-daemon --allowed * --blocklist --config-dir /var/lib/transmission-daemon/info --foreground --log-info --no-portmap --auth --username admin --password aaabbbccc"/>
 
-<meta property="og:title" content="Raspberry Pi Time Machine" />
-<meta property="og:description" content="https://gregology.net/2018/09/raspberry-pi-time-machine/  This one is useful for the USB disk in fstab and delay mount in crontab
- https://github.com/odarriba/docker-timemachine  I always use Docker as possible as I can to simplify the deployment" />
+<meta property="og:title" content="How Check the Password of the Transmission in Docker" />
+<meta property="og:description" content="how to start a Transmission in Docker docker run --name transmissionbt --restart=always -d -e TZ=Hongkong -e USERID=1001 -e GROUPID=1001 -v /your/local/path/to/transmission:/var/lib/transmission-daemon -p 9091:9091 -p 51413:51413 dperson/transmission how to check the password: first get the console of the container:
+docker exec -it transmissionbt /bin/sh
+then in the shell console of the container:
+ps -ef | grep transmission you will seee the password transmis 0:11 transmission-daemon --allowed * --blocklist --config-dir /var/lib/transmission-daemon/info --foreground --log-info --no-portmap --auth --username admin --password aaabbbccc" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://h.acethon.com/posts/raspberry-pi-time-machine/" />
-<meta property="article:published_time" content="2019-12-29T16:10:48+08:00" />
-<meta property="article:modified_time" content="2019-12-29T16:10:48+08:00" />
+<meta property="og:url" content="https://h.acethon.com/posts/check-the-password-of-the-transmission-in-docker/" />
+<meta property="article:published_time" content="2020-01-06T20:13:39+08:00" />
+<meta property="article:modified_time" content="2020-01-06T20:13:39+08:00" />
 
 
     
@@ -157,13 +161,13 @@ Built with <a href="https://gohugo.io">Hugo</a> ❤️ <a href="https://github.c
     
 <article>
   <header>
-    <h1>Raspberry Pi Time Machine</h1>
+    <h1>How Check the Password of the Transmission in Docker</h1>
     
     
 <div class="post__meta">
     
     
-      <i class="fas fa-calendar-alt"></i> Dec 29, 2019
+      <i class="fas fa-calendar-alt"></i> Jan 06, 2020
     
     
     
@@ -178,30 +182,25 @@ Built with <a href="https://gohugo.io">Hugo</a> ❤️ <a href="https://github.c
   
   
   <div class="post">
-    <ul>
-<li><a href="https://gregology.net/2018/09/raspberry-pi-time-machine/">https://gregology.net/2018/09/raspberry-pi-time-machine/</a></li>
-</ul>
-<p>This one is useful for the USB disk in fstab and delay mount in crontab</p>
-<ul>
-<li><a href="https://github.com/odarriba/docker-timemachine">https://github.com/odarriba/docker-timemachine</a></li>
-</ul>
-<p>I always use Docker as possible as I can to simplify the deployment</p>
+    <h2 id="how-to-start-a-transmission-in-docker">how to start a Transmission in Docker</h2>
+<pre><code>docker run --name transmissionbt --restart=always -d  -e TZ=Hongkong  -e USERID=1001  -e GROUPID=1001 -v /your/local/path/to/transmission:/var/lib/transmission-daemon -p 9091:9091 -p 51413:51413  dperson/transmission
+</code></pre><h2 id="how-to-check-the-password">how to check the password:</h2>
+<p>first get the console of the container:</p>
+<p><code>docker exec -it transmissionbt /bin/sh</code></p>
+<p>then in the shell console of the container:</p>
+<pre><code>ps -ef | grep transmission
+</code></pre><p>you will seee the password  <code>transmis  0:11 transmission-daemon --allowed * --blocklist --config-dir /var/lib/transmission-daemon/info --foreground --log-info --no-portmap --auth --username admin --password aaabbbccc</code></p>
 
   </div>
   
 
 <div class="navigation navigation-single">
     
-    <a href="/posts/mac-os-x-recovery-in-single-mode/" class="navigation-prev">
+    <a href="/posts/raspberry-pi-time-machine/" class="navigation-prev">
       <i aria-hidden="true" class="fa fa-chevron-left"></i>
-      <span class="navigation-tittle">Mac OS X Backup in Single Mode</span>
+      <span class="navigation-tittle">Raspberry Pi Time Machine</span>
     </a>
     
-    
-    <a href="/posts/check-the-password-of-the-transmission-in-docker/" class="navigation-next">
-      <span class="navigation-tittle">How Check the Password of the Transmission in Docker</span>
-      <i aria-hidden="true" class="fa fa-chevron-right"></i>
-    </a>
     
 </div>
 

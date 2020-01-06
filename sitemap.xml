@@ -3,17 +3,22 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://h.acethon.com/posts/</loc>
-    <lastmod>2019-12-29T16:10:48+08:00</lastmod>
+    <loc>https://h.acethon.com/posts/check-the-password-of-the-transmission-in-docker/</loc>
+    <lastmod>2020-01-06T20:13:39+08:00</lastmod>
   </url>
   
   <url>
-    <loc>https://h.acethon.com/posts/raspberry-pi-time-machine/</loc>
-    <lastmod>2019-12-29T16:10:48+08:00</lastmod>
+    <loc>https://h.acethon.com/posts/</loc>
+    <lastmod>2020-01-06T20:13:39+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://h.acethon.com/</loc>
+    <lastmod>2020-01-06T20:13:39+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://h.acethon.com/posts/raspberry-pi-time-machine/</loc>
     <lastmod>2019-12-29T16:10:48+08:00</lastmod>
   </url>
   
