@@ -1,1 +1,1 @@
-This is the generated web site of wisicn.github.io by Hugo
+This is the generated web site of blog.cdnsre.top by Hugo
