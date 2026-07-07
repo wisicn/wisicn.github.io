@@ -1,0 +1,203 @@
+<!doctype html><html lang=en-us><head><link href=https://gmpg.org/xfn/11 rel=profile><link rel=canonical href=https://wisicn.github.io/posts/open-source-llm/><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta name=generator content="Hugo 0.147.6"><title>Understanding Open-Source Large Language Models: From Hugging Face to Ollama • Wissen Xue Blog</title><meta name=twitter:card content="summary"><meta name=twitter:title content="Understanding Open-Source Large Language Models: From Hugging Face to Ollama"><meta name=twitter:description content="A detailed summary for learning and teaching LLM
+1. What do we actually download from Hugging Face? One of the biggest misconceptions is that downloading a Large Language Model (LLM) means downloading its training data.
+This is NOT true.
+When you download an open-source model from Hugging Face, you are primarily downloading a trained neural network, not the data that trained it.
+Think of it like this:
+Training data = millions or billions of books the student has read Model weights = everything the student has learned Source code = the student’s brain architecture Tokenizer = the student’s dictionary The books are not included."><meta property="og:url" content="https://wisicn.github.io/posts/open-source-llm/"><meta property="og:site_name" content="Wissen Xue Blog"><meta property="og:title" content="Understanding Open-Source Large Language Models: From Hugging Face to Ollama"><meta property="og:description" content="A detailed summary for learning and teaching LLM
+1. What do we actually download from Hugging Face? One of the biggest misconceptions is that downloading a Large Language Model (LLM) means downloading its training data.
+This is NOT true.
+When you download an open-source model from Hugging Face, you are primarily downloading a trained neural network, not the data that trained it.
+Think of it like this:
+Training data = millions or billions of books the student has read Model weights = everything the student has learned Source code = the student’s brain architecture Tokenizer = the student’s dictionary The books are not included."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-07-07T14:25:04+08:00"><meta property="article:modified_time" content="2026-07-07T14:25:04+08:00"><meta property="article:tag" content="LLM"><meta property="article:tag" content="Open-Source"><meta property="article:tag" content="Ollama"><meta property="article:tag" content="HuggingFace"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/github.min.css><link rel=stylesheet href=/scss/triple-hyde.ef937e1c8a424ea6419b858ae4cfbdb5f7e764eb1075e9ac50fa2de759dde8a2.css integrity="sha256-75N+HIpCTqZBm4WK5M+9tffnZOsQdemsUPot51nd6KI="><link rel=stylesheet href=/scss/print.2744dcbf8a0b2e74f8a50e4b34e5f441be7cf93cc7de27029121c6a09f9e77bc.css integrity="sha256-J0Tcv4oLLnT4pQ5LNOX0Qb58+TzH3icCkSHGoJ+ed7w=" media=print><!--[if lt IE 9]><script src=https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js></script><script src=https://oss.maxcdn.com/respond/1.4.2/respond.min.js></script><![endif]--><link rel=apple-touch-icon-precomposed sizes=144x144 href=/apple-touch-icon-144-precomposed.png><link rel="shortcut icon" href=/favicon.png></head><body><div class=sidebar><div class=container><div class=sidebar-about><span class=site__title><a href=https://wisicn.github.io/>Wissen Xue Blog</a></span><div class=author-image><img src=https://wisicn.github.io/avatar.jpg alt="Author Image" class="img--circle img--headshot element--center"></div><p class=site__description>My Tech Notes</p></div><div class=collapsible-menu><input type=checkbox id=menuToggle>
+<label for=menuToggle>Wissen Xue Blog</label><div class=menu-content><div><ul class=sidebar-nav><li><a href=/posts/><span>Posts</span></a></li><li><a href=/about/><span>About</span></a></li></ul></div><section class=social><a href=https://github.com/wisicn rel=me><span class="relative block icon"><svg viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span></a><a href=https://linkedin.com/in/wissenxue rel=me><span class="relative block icon"><svg viewBox="0 0 448 512"><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span></a><a href=https://keybase.io/zhxue rel=me><span class="relative block icon"><svg viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1018 18 18 18 0 00-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27A78.43 78.43.0 00244.57 86.29c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 00-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61.0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 00-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6.0 0014.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29.0 01-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09.0 012.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 00.32 19.57l-22.38-1.34a12.28 12.28.0 01-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35.0 00-7 19.17zm148.42 172.18a10.51 10.51.0 01-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09.0 01-11.13-1.08l-15.78-18.64a7.38 7.38.0 011.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75.0 01-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38.0 011.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56.0 011.74-13.42 10.38 10.38.0 0114.3 1.37l81.09 96.32a9.58 9.58.0 01-1.74 13.44zM187.44 419a18 18 0 1018 18 18 18 0 00-18-18z"/></svg></span></a></section></div></div><div class=copyright>&copy; 2026 wissenxue
+<a href=https://creativecommons.org/licenses/by-sa/4.0>CC BY-SA 4.0</a></div><div class=builtwith>Built with <a href=https://gohugo.io>Hugo</a> ❤️ <a href=https://github.com/derme302/triple-hyde>triple-hyde</a>.</div></div></div><div class="content container"><article><header><h1>Understanding Open-Source Large Language Models: From Hugging Face to Ollama</h1><div class=post__meta><i class="fas fa-calendar-alt"></i> 7 Jul, 2026<br><i class="fas fa-tags"></i>
+<a class="badge badge-tag" href=/tags/llm>llm</a>
+<a class="badge badge-tag" href=/tags/open-source>open-source</a>
+<a class="badge badge-tag" href=/tags/ollama>ollama</a>
+<a class="badge badge-tag" href=/tags/huggingface>huggingface</a><br><i class="fas fa-clock"></i> 6 min read</div></header><div class=post><p><em>A detailed summary for learning and teaching LLM</em></p><hr><h1 id=1-what-do-we-actually-download-from-hugging-face>1. What do we actually download from Hugging Face?</h1><p>One of the biggest misconceptions is that downloading a Large Language Model (LLM) means downloading its training data.</p><p><strong>This is NOT true.</strong></p><p>When you download an open-source model from Hugging Face, you are primarily downloading <strong>a trained neural network</strong>, not the data that trained it.</p><p>Think of it like this:</p><ul><li>Training data = millions or billions of books the student has read</li><li>Model weights = everything the student has learned</li><li>Source code = the student&rsquo;s brain architecture</li><li>Tokenizer = the student&rsquo;s dictionary</li></ul><p>The books are <strong>not</strong> included.</p><p>Instead, the downloaded model contains the &ldquo;knowledge&rdquo; compressed into billions of numerical parameters.</p><hr><h1 id=2-what-files-are-inside-a-hugging-face-model>2. What files are inside a Hugging Face model?</h1><p>A model such as <strong>Llama-2-7B</strong> usually contains files like these:</p><pre tabindex=0><code>config.json
+generation_config.json
+
+pytorch_model-00001-of-00002.bin
+pytorch_model-00002-of-00002.bin
+(or model.safetensors)
+
+tokenizer.model
+tokenizer.json
+tokenizer_config.json
+special_tokens_map.json
+
+README.md
+LICENSE
+</code></pre><p>Each file has a different purpose.</p><hr><h2 id=configjson>config.json</h2><p>This defines the architecture of the neural network.</p><p>For example:</p><ul><li>number of Transformer layers</li><li>hidden dimension</li><li>number of attention heads</li><li>vocabulary size</li></ul><p>It is the <strong>blueprint</strong> of the model.</p><hr><h2 id=model-weights>Model weights</h2><p>Example:</p><pre tabindex=0><code>pytorch_model.bin
+</code></pre><p>or</p><pre tabindex=0><code>model.safetensors
+</code></pre><p>These are the trained parameters.</p><p>Inside are billions of floating-point numbers.</p><p>For Llama-2-7B:</p><ul><li>around <strong>7 billion parameters</strong></li><li>approximately <strong>14 GB</strong> in FP16 format</li></ul><p>These numbers represent everything the model learned during training.</p><hr><h2 id=tokenizer>Tokenizer</h2><p>Files such as</p><pre tabindex=0><code>tokenizer.model
+tokenizer.json
+</code></pre><p>convert text into numbers.</p><p>Example:</p><pre tabindex=0><code>Hello world
+</code></pre><p>becomes</p><pre tabindex=0><code>[15043, 3186]
+</code></pre><p>The model never understands English directly.</p><p>It only understands token IDs.</p><hr><h2 id=generation-configuration>Generation configuration</h2><pre tabindex=0><code>generation_config.json
+</code></pre><p>Stores default generation settings such as</p><ul><li>temperature</li><li>top-p</li><li>top-k</li><li>max tokens</li></ul><hr><h2 id=readme-and-license>README and LICENSE</h2><p>These are documentation.</p><p>They are not loaded into memory during inference.</p><hr><h1 id=3-how-do-these-files-work-together>3. How do these files work together?</h1><p>The complete pipeline looks like this.</p><pre tabindex=0><code>User types text
+        │
+        ▼
+Tokenizer
+(text → token IDs)
+        │
+        ▼
+Transformer model
+(config + weights)
+        │
+        ▼
+Predicted token IDs
+        │
+        ▼
+Tokenizer
+(token IDs → text)
+        │
+        ▼
+Final answer
+</code></pre><hr><h1 id=4-mapping-files-to-python-objects>4. Mapping files to Python objects</h1><p>When using the Transformers library:</p><pre tabindex=0><code>config.json
+        │
+        ▼
+LlamaConfig object
+</code></pre><pre tabindex=0><code>weights.bin
+        │
+        ▼
+state_dict
+        │
+        ▼
+LlamaForCausalLM
+</code></pre><pre tabindex=0><code>tokenizer.model
+        │
+        ▼
+SentencePiece tokenizer
+</code></pre><pre tabindex=0><code>generation_config.json
+        │
+        ▼
+GenerationConfig
+</code></pre><p>At runtime, these become actual Python objects.</p><hr><h1 id=5-what-happens-inside-from_pretrained>5. What happens inside <code>from_pretrained()</code>?</h1><p>When we execute</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=display:flex><span>model <span style=color:#f92672>=</span> AutoModelForCausalLM<span style=color:#f92672>.</span>from_pretrained(<span style=color:#f92672>...</span>)
+</span></span></code></pre></div><p>the library performs several steps automatically.</p><h3 id=step-1>Step 1</h3><p>Locate the model</p><pre tabindex=0><code>local folder
+or
+
+Hugging Face Hub
+</code></pre><hr><h3 id=step-2>Step 2</h3><p>Read</p><pre tabindex=0><code>config.json
+</code></pre><p>Create</p><pre tabindex=0><code>LlamaConfig
+</code></pre><hr><h3 id=step-3>Step 3</h3><p>Create an empty neural network</p><pre tabindex=0><code>LlamaForCausalLM(config)
+</code></pre><p>At this moment:</p><ul><li>layers exist</li><li>weights are empty</li></ul><hr><h3 id=step-4>Step 4</h3><p>Load</p><pre tabindex=0><code>pytorch_model.bin
+</code></pre><p>Convert it into</p><pre tabindex=0><code>state_dict
+</code></pre><hr><h3 id=step-5>Step 5</h3><p>Copy every tensor into the corresponding layer.</p><p>For example</p><pre tabindex=0><code>layer0.attention.q_proj.weight
+</code></pre><p>is copied into</p><pre tabindex=0><code>Layer 0
+↓
+Attention
+↓
+Query projection
+</code></pre><hr><h3 id=step-6>Step 6</h3><p>Return the fully initialized model.</p><hr><h1 id=6-what-happens-during-text-generation>6. What happens during text generation?</h1><p>Suppose the prompt is</p><pre tabindex=0><code>Hello
+</code></pre><p>The generation loop looks like this.</p><pre tabindex=0><code>Prompt
+   │
+   ▼
+Tokenizer
+   │
+   ▼
+Token IDs
+   │
+   ▼
+Forward pass
+   │
+   ▼
+Probability of next token
+   │
+   ▼
+Choose one token
+   │
+   ▼
+Append token
+   │
+   ▼
+Repeat
+</code></pre><p>The model predicts <strong>one token at a time</strong>.</p><p>It never writes the whole sentence in one computation.</p><hr><h1 id=7-hugging-face-vs-ollama>7. Hugging Face vs Ollama</h1><p>These two systems play very different roles.</p><hr><h2 id=hugging-face>Hugging Face</h2><p>Provides</p><ul><li>model files</li><li>tokenizer</li><li>configuration</li></ul><p>You are responsible for</p><ul><li>Python</li><li>PyTorch</li><li>Transformers</li><li>CUDA</li><li>inference code</li></ul><p>It is flexible but requires programming knowledge.</p><hr><h2 id=ollama>Ollama</h2><p>Ollama is more like a <strong>runtime platform</strong>.</p><p>It provides</p><ul><li>model management</li><li>inference engine</li><li>API server</li><li>command-line interface</li></ul><p>You simply run</p><pre tabindex=0><code>ollama run llama3
+</code></pre><p>without writing Python.</p><hr><h1 id=8-what-does-ollama-actually-do>8. What does Ollama actually do?</h1><p>Ollama has several important responsibilities.</p><hr><h2 id=model-management>Model management</h2><p>Commands such as</p><pre tabindex=0><code>ollama pull
+ollama list
+ollama rm
+</code></pre><p>download and organize models.</p><hr><h2 id=runtime-engine>Runtime engine</h2><p>Internally it uses technology based largely on <strong>llama.cpp</strong>.</p><p>It performs</p><ul><li>matrix multiplication</li><li>memory management</li><li>GPU/CPU scheduling</li></ul><hr><h2 id=api-server>API server</h2><p>Ollama exposes a local REST API.</p><p>Applications simply send</p><pre tabindex=0><code>Prompt
+</code></pre><p>and receive</p><pre tabindex=0><code>Generated text
+</code></pre><hr><h2 id=user-interface>User interface</h2><p>Instead of writing Python,</p><p>you simply type</p><pre tabindex=0><code>ollama run llama3
+</code></pre><hr><h1 id=9-hugging-face-model-structure-vs-ollama-model-structure>9. Hugging Face model structure vs Ollama model structure</h1><h2 id=hugging-face-1>Hugging Face</h2><pre tabindex=0><code>config.json
+
+weights.bin
+
+tokenizer.model
+
+tokenizer.json
+
+generation_config.json
+</code></pre><p>Many files.</p><hr><h2 id=ollama-1>Ollama</h2><p>Usually only</p><pre tabindex=0><code>model.gguf
+</code></pre><p>plus some metadata.</p><p>Everything is packaged together.</p><hr><h1 id=10-what-is-gguf>10. What is GGUF?</h1><p>GGUF is a model format designed primarily for <strong>llama.cpp</strong>.</p><p>Unlike Hugging Face,</p><p>GGUF stores</p><ul><li>architecture</li><li>tokenizer</li><li>vocabulary</li><li>weights</li><li>metadata</li></ul><p>inside one file.</p><p>Think of it as a <strong>self-contained package</strong>.</p><hr><h1 id=11-why-use-gguf>11. Why use GGUF?</h1><p>Advantages:</p><ul><li>smaller size</li><li>quantized</li><li>faster loading</li><li>lower RAM usage</li><li>works well on CPUs</li><li>easier deployment</li></ul><p>Instead of 14 GB,</p><p>a 7B model may become only</p><pre tabindex=0><code>4 GB
+</code></pre><p>after 4-bit quantization.</p><hr><h1 id=12-how-does-a-hugging-face-model-become-an-ollama-model>12. How does a Hugging Face model become an Ollama model?</h1><p>The conversion pipeline is</p><pre tabindex=0><code>Hugging Face
+
+config.json
+
+weights.bin
+
+tokenizer.model
+        │
+        ▼
+Download
+        │
+        ▼
+Conversion tool
+(llama.cpp)
+        │
+        ▼
+GGUF
+        │
+        ▼
+Ollama
+        │
+        ▼
+Run
+</code></pre><p>The conversion process</p><ul><li>reads Hugging Face files</li><li>packs them into GGUF</li><li>optionally quantizes the weights</li></ul><hr><h1 id=13-practical-workflow>13. Practical workflow</h1><p>A typical workflow looks like this.</p><h3 id=step-1-1>Step 1</h3><p>Install tools</p><pre tabindex=0><code>git-lfs
+
+llama.cpp
+
+Ollama
+</code></pre><hr><h3 id=step-2-1>Step 2</h3><p>Download the model</p><pre tabindex=0><code>git clone
+</code></pre><p>or</p><pre tabindex=0><code>huggingface-cli download
+</code></pre><hr><h3 id=step-3-1>Step 3</h3><p>Convert</p><pre tabindex=0><code>weights.bin
+</code></pre><p>into</p><pre tabindex=0><code>model.gguf
+</code></pre><hr><h3 id=step-4-1>Step 4</h3><p>Optionally quantize</p><p>For example</p><pre tabindex=0><code>Q4_K_M
+</code></pre><p>to reduce memory usage.</p><hr><h3 id=step-5-1>Step 5</h3><p>Create a Modelfile</p><pre tabindex=0><code>FROM model.gguf
+</code></pre><hr><h3 id=step-6-1>Step 6</h3><p>Import into Ollama</p><pre tabindex=0><code>ollama create
+</code></pre><hr><h3 id=step-7>Step 7</h3><p>Run</p><pre tabindex=0><code>ollama run
+</code></pre><p>or</p><pre tabindex=0><code>curl http://localhost:11434/api/generate
+</code></pre><hr><h1 id=14-the-big-picture>14. The big picture</h1><p>The entire ecosystem can be summarized as follows.</p><pre tabindex=0><code>                 Training
+                     │
+                     ▼
+      Massive training dataset
+                     │
+                     ▼
+      Billions of learned parameters
+                     │
+                     ▼
+         Hugging Face Repository
+                     │
+                     ▼
+      Download config + tokenizer + weights
+                     │
+                     ▼
+          Convert to GGUF (optional)
+                     │
+                     ▼
+              Quantization
+                     │
+                     ▼
+             Ollama Runtime
+                     │
+                     ▼
+        Tokenizer → Transformer → Output
+                     │
+                     ▼
+          Human-readable response
+</code></pre><hr><h1 id=15-key-concepts-to-remember>15. Key concepts to remember</h1><ol><li><p><strong>Training data is almost never included</strong> with an open-source model. The model contains learned parameters, not the original dataset.</p></li><li><p><strong>The model weights are the &ldquo;brain&rdquo;</strong> of the AI. They store everything the model learned during training.</p></li><li><p><strong>The configuration defines the neural network architecture</strong>, while the weights fill that architecture with learned knowledge.</p></li><li><p><strong>The tokenizer is essential.</strong> It converts human language into token IDs and converts generated token IDs back into text.</p></li><li><p><strong><code>from_pretrained()</code> automates model loading</strong> by reading the configuration, creating the network, loading the weights, and returning a ready-to-use model.</p></li><li><p><strong>Text generation is iterative.</strong> The model predicts one token at a time until it reaches an end-of-sequence token or a maximum length.</p></li><li><p><strong>Hugging Face is primarily a model repository and ecosystem</strong>, whereas <strong>Ollama is a local inference runtime and model management platform</strong>.</p></li><li><p><strong>GGUF packages everything into a single optimized file</strong>, making deployment simpler and enabling efficient CPU or low-memory inference through llama.cpp-based runtimes.</p></li></ol><hr><p>This progression—from understanding what a model contains, to how it is loaded, how inference works, and how deployment differs between Hugging Face and Ollama—provides a strong conceptual foundation for anyone beginning to learn modern large language models. It emphasizes not just <em>how</em> to use these systems, but <em>why</em> they are designed the way they are.</p></div><div class="navigation navigation-single"><a href=/posts/hp-t610-ubuntu-lts/ class=navigation-prev><i aria-hidden=true class="fa fa-chevron-left"></i>
+<span class=navigation-tittle>Install Ubuntu 24.04.2 LTS server on HP t610 Flexible Thin Clients</span></a></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(location.hostname==="localhost"||location.hostname==="127.0.0.1"||location.hostname==="")return;var t,e=document.createElement("script");e.type="text/javascript",e.async=!0,t="technicalnotesblog",e.src="//"+t+".disqus.com/embed.js",(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(e)})()</script><noscript>Please enable JavaScript to view the
+<a href=http://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by
+<span class=logo-disqus>Disqus</span></a></article></div><script async src="https://www.googletagmanager.com/gtag/js?id=G-0XYLQMDWZ2"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-0XYLQMDWZ2")}</script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js></script><script type=text/javascript>hljs.initHighlightingOnLoad()</script></body></html>
