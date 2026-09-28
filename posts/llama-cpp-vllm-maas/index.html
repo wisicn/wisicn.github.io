@@ -1,0 +1,602 @@
+<!doctype html><html lang=en-us><head><link href=https://gmpg.org/xfn/11 rel=profile><link rel=canonical href=https://wisicn.github.io/posts/llama-cpp-vllm-maas/><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1"><meta name=generator content="Hugo 0.147.6"><title>From llama.cpp to vLLM: Inside the Architecture of a Production LLM MaaS Platform • Wissen Xue Blog</title><meta name=twitter:card content="summary"><meta name=twitter:title content="From llama.cpp to vLLM: Inside the Architecture of a Production LLM MaaS Platform"><meta name=twitter:description content="From running an LLM locally with llama.cpp to serving thousands of concurrent requests with vLLM—and finally building a production LLM Model-as-a-Service platform with Kubernetes, GPU scheduling, model routing, and control/data planes."><meta property="og:url" content="https://wisicn.github.io/posts/llama-cpp-vllm-maas/"><meta property="og:site_name" content="Wissen Xue Blog"><meta property="og:title" content="From llama.cpp to vLLM: Inside the Architecture of a Production LLM MaaS Platform"><meta property="og:description" content="From running an LLM locally with llama.cpp to serving thousands of concurrent requests with vLLM—and finally building a production LLM Model-as-a-Service platform with Kubernetes, GPU scheduling, model routing, and control/data planes."><meta property="og:locale" content="en_us"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2026-09-22T18:28:18+08:00"><meta property="article:modified_time" content="2026-09-22T18:28:18+08:00"><meta property="article:tag" content="LLM"><meta property="article:tag" content="AI Inference"><meta property="article:tag" content="VLLM"><meta property="article:tag" content="Llama.cpp"><meta property="article:tag" content="MaaS"><meta property="article:tag" content="Kubernetes"><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/styles/github.min.css><link rel=stylesheet href=/scss/triple-hyde.ef937e1c8a424ea6419b858ae4cfbdb5f7e764eb1075e9ac50fa2de759dde8a2.css integrity="sha256-75N+HIpCTqZBm4WK5M+9tffnZOsQdemsUPot51nd6KI="><link rel=stylesheet href=/scss/print.2744dcbf8a0b2e74f8a50e4b34e5f441be7cf93cc7de27029121c6a09f9e77bc.css integrity="sha256-J0Tcv4oLLnT4pQ5LNOX0Qb58+TzH3icCkSHGoJ+ed7w=" media=print><!--[if lt IE 9]><script src=https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js></script><script src=https://oss.maxcdn.com/respond/1.4.2/respond.min.js></script><![endif]--><link rel=apple-touch-icon-precomposed sizes=144x144 href=/apple-touch-icon-144-precomposed.png><link rel="shortcut icon" href=/favicon.png></head><body><div class=sidebar><div class=container><div class=sidebar-about><span class=site__title><a href=https://wisicn.github.io/>Wissen Xue Blog</a></span><div class=author-image><img src=https://wisicn.github.io/avatar.jpg alt="Author Image" class="img--circle img--headshot element--center"></div><p class=site__description>My Tech Notes</p></div><div class=collapsible-menu><input type=checkbox id=menuToggle>
+<label for=menuToggle>Wissen Xue Blog</label><div class=menu-content><div><ul class=sidebar-nav><li><a href=/posts/><span>Posts</span></a></li><li><a href=/about/><span>About</span></a></li></ul></div><section class=social><a href=https://github.com/wisicn rel=me><span class="relative block icon"><svg viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6.0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6.0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3.0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1.0-6.2-.3-40.4-.3-61.4.0.0-70 15-84.7-29.8.0.0-11.4-29.1-27.8-36.6.0.0-22.9-15.7 1.6-15.4.0.0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5.0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9.0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4.0 33.7-.3 75.4-.3 83.6.0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6.0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9.0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+</span></a><a href=https://linkedin.com/in/wissenxue rel=me><span class="relative block icon"><svg viewBox="0 0 448 512"><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5.0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6.0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3.0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2.0 38.5 17.3 38.5 38.5.0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6.0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2.0 79.7 44.3 79.7 101.9V416z"/></svg>
+</span></a><a href=https://keybase.io/zhxue rel=me><span class="relative block icon"><svg viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1018 18 18 18 0 00-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27A78.43 78.43.0 00244.57 86.29c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 00-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61.0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 00-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6.0 0014.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29.0 01-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09.0 012.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 00.32 19.57l-22.38-1.34a12.28 12.28.0 01-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35.0 00-7 19.17zm148.42 172.18a10.51 10.51.0 01-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09.0 01-11.13-1.08l-15.78-18.64a7.38 7.38.0 011.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75.0 01-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38.0 011.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56.0 011.74-13.42 10.38 10.38.0 0114.3 1.37l81.09 96.32a9.58 9.58.0 01-1.74 13.44zM187.44 419a18 18 0 1018 18 18 18 0 00-18-18z"/></svg></span></a></section></div></div><div class=copyright>&copy; 2026 wissenxue
+<a href=https://creativecommons.org/licenses/by-sa/4.0>CC BY-SA 4.0</a></div><div class=builtwith>Built with <a href=https://gohugo.io>Hugo</a> ❤️ <a href=https://github.com/derme302/triple-hyde>triple-hyde</a>.</div></div></div><div class="content container"><article><header><h1>From llama.cpp to vLLM: Inside the Architecture of a Production LLM MaaS Platform</h1><div class=post__meta><i class="fas fa-calendar-alt"></i> 22 Sep, 2026<br><i class="fas fa-tags"></i>
+<a class="badge badge-tag" href=/tags/llm>llm</a>
+<a class="badge badge-tag" href=/tags/ai-inference>ai inference</a>
+<a class="badge badge-tag" href=/tags/vllm>vllm</a>
+<a class="badge badge-tag" href=/tags/llama.cpp>llama.cpp</a>
+<a class="badge badge-tag" href=/tags/maas>maas</a>
+<a class="badge badge-tag" href=/tags/kubernetes>kubernetes</a>
+<a class="badge badge-tag" href=/tags/gpu>gpu</a>
+<a class="badge badge-tag" href=/tags/ai-infrastructure>ai infrastructure</a><br><i class="fas fa-clock"></i> 17 min read</div></header><div class=post><h1 id=from-llamacpp-to-vllm-inside-the-architecture-of-a-production-llm-maas-platform>From llama.cpp to vLLM: Inside the Architecture of a Production LLM MaaS Platform</h1><p>When we first start working with open-source LLMs, the problem looks deceptively simple:</p><blockquote><p><strong>How do I run this model?</strong></p></blockquote><p>Download a model, load it into an inference runtime, send a prompt, and get a response.</p><p>Projects such as <a href=https://github.com/ggml-org/llama.cpp>llama.cpp</a> have made this experience remarkably accessible. Its goal is to provide efficient LLM and VLM inference with minimal setup across a wide range of hardware, including CPUs, Apple Silicon, NVIDIA and AMD GPUs, and other accelerators. It also supports low-bit quantization and CPU+GPU hybrid inference. (<a href="https://github.com/ggml-org/llama.cpp?pubDate=20260313&amp;utm_source=chatgpt.com" title="GitHub - ggml-org/llama.cpp: LLM inference in C/C++ · GitHub">GitHub</a>)</p><p>But the problem changes dramatically when we move from <strong>running an LLM for ourselves</strong> to <strong>providing LLM inference as a service</strong>.</p><p>Now we need to answer questions such as:</p><ul><li>How many requests can one GPU serve?</li><li>How do we efficiently handle hundreds or thousands of concurrent requests?</li><li>How do we maximize GPU utilization?</li><li>How do we manage the KV cache?</li><li>How do we serve models across multiple GPUs?</li><li>How do we route requests between model replicas?</li><li>How do we scale capacity when traffic changes?</li><li>How do we implement authentication, quotas and billing?</li><li>How do we isolate different customers?</li><li>How do we operate thousands of GPUs reliably?</li></ul><p>This is where the architecture evolves from <strong>llama.cpp → vLLM → LLM Model-as-a-Service (MaaS)</strong>.</p><hr><h1 id=1-first-principle-an-llm-is-a-compute-workload>1. First Principle: An LLM Is a Compute Workload</h1><p>Before discussing any particular inference engine, it is useful to step back.</p><p>An LLM is essentially a very large computation graph backed by a large set of model weights.</p><p>At the simplest level:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                Application
+</span></span><span style=display:flex><span>                     │
+</span></span><span style=display:flex><span>                     │ Prompt
+</span></span><span style=display:flex><span>                     ▼
+</span></span><span style=display:flex><span>              ┌──────────────┐
+</span></span><span style=display:flex><span>              │  LLM Runtime │
+</span></span><span style=display:flex><span>              └──────┬───────┘
+</span></span><span style=display:flex><span>                     │
+</span></span><span style=display:flex><span>                     ▼
+</span></span><span style=display:flex><span>               Model Weights
+</span></span><span style=display:flex><span>                     │
+</span></span><span style=display:flex><span>                     ▼
+</span></span><span style=display:flex><span>                CPU / GPU
+</span></span></code></pre></div><p>The first engineering challenge is therefore:</p><blockquote><p><strong>How can we execute the model efficiently on available hardware?</strong></p></blockquote><p>This is the problem space where llama.cpp is particularly interesting.</p><hr><h1 id=2-llamacpp-making-llm-inference-portable>2. llama.cpp: Making LLM Inference Portable</h1><p><a href=https://github.com/ggml-org/llama.cpp>llama.cpp</a> is implemented in C/C++ and is designed to run LLMs and VLMs with minimal setup across a wide variety of hardware.</p><p>Its supported environments include:</p><ul><li>x86 CPUs</li><li>ARM CPUs</li><li>Apple Silicon</li><li>NVIDIA GPUs</li><li>AMD GPUs</li><li>Vulkan</li><li>SYCL</li><li>other accelerator backends</li></ul><p>It also supports CPU-specific instruction sets such as AVX, AVX2, AVX512 and AMX, while Apple Silicon receives dedicated optimization through ARM NEON, Accelerate and Metal. (<a href="https://github.com/ggml-org/llama.cpp?pubDate=20260313&amp;utm_source=chatgpt.com" title="GitHub - ggml-org/llama.cpp: LLM inference in C/C++ · GitHub">GitHub</a>)</p><p>Conceptually:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                         llama.cpp
+</span></span><span style=display:flex><span>                             │
+</span></span><span style=display:flex><span>             ┌───────────────┼───────────────┐
+</span></span><span style=display:flex><span>             │               │               │
+</span></span><span style=display:flex><span>             ▼               ▼               ▼
+</span></span><span style=display:flex><span>           CPU          Apple Silicon      GPU
+</span></span><span style=display:flex><span>             │               │               │
+</span></span><span style=display:flex><span>           x86/ARM          Metal        CUDA/HIP
+</span></span></code></pre></div><p>This portability is one of its greatest strengths.</p><hr><h1 id=3-quantization-changes-the-economics-of-local-inference>3. Quantization Changes the Economics of Local Inference</h1><p>Another important part of the llama.cpp ecosystem is aggressive quantization.</p><p>Instead of representing every model weight using FP16 or BF16, a model can be represented at lower precision:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>FP16
+</span></span><span style=display:flex><span> │
+</span></span><span style=display:flex><span> ├── Q8
+</span></span><span style=display:flex><span> ├── Q6
+</span></span><span style=display:flex><span> ├── Q5
+</span></span><span style=display:flex><span> ├── Q4
+</span></span><span style=display:flex><span> ├── Q3
+</span></span><span style=display:flex><span> └── Q2
+</span></span></code></pre></div><p>The basic trade-off is:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Lower precision
+</span></span><span style=display:flex><span>      │
+</span></span><span style=display:flex><span>      ├── Smaller model
+</span></span><span style=display:flex><span>      ├── Lower memory requirement
+</span></span><span style=display:flex><span>      └── Potentially faster inference
+</span></span><span style=display:flex><span>                  │
+</span></span><span style=display:flex><span>                  └── Some loss of numerical precision
+</span></span></code></pre></div><p>This can make a huge difference on consumer hardware.</p><p>Imagine:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>              Large Model
+</span></span><span style=display:flex><span>                  │
+</span></span><span style=display:flex><span>          ┌───────┴───────┐
+</span></span><span style=display:flex><span>          │               │
+</span></span><span style=display:flex><span>        FP16             Q4
+</span></span><span style=display:flex><span>          │               │
+</span></span><span style=display:flex><span>      Very large        Much smaller
+</span></span><span style=display:flex><span>          │               │
+</span></span><span style=display:flex><span>          ▼               ▼
+</span></span><span style=display:flex><span>    Server-class       Workstation
+</span></span><span style=display:flex><span>      memory             hardware
+</span></span></code></pre></div><p>llama.cpp supports integer quantization from very low bit widths through 8-bit, making it particularly attractive for local and resource-constrained inference. (<a href="https://github.com/ggml-org/llama.cpp?pubDate=20260313&amp;utm_source=chatgpt.com" title="GitHub - ggml-org/llama.cpp: LLM inference in C/C++ · GitHub">GitHub</a>)</p><hr><h1 id=4-cpu--gpu-hybrid-inference>4. CPU + GPU Hybrid Inference</h1><p>One particularly useful feature is hybrid inference.</p><p>Suppose we have:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>GPU VRAM = 24 GB
+</span></span><span style=display:flex><span>System RAM = 64 GB
+</span></span></code></pre></div><p>but our model requires more than 24 GB.</p><p>Instead of simply failing:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Model
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>24 GB VRAM
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  X
+</span></span></code></pre></div><p>llama.cpp can divide the workload between GPU and system memory:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                 Model
+</span></span><span style=display:flex><span>                   │
+</span></span><span style=display:flex><span>           ┌───────┴───────┐
+</span></span><span style=display:flex><span>           │               │
+</span></span><span style=display:flex><span>           ▼               ▼
+</span></span><span style=display:flex><span>       GPU VRAM         System RAM
+</span></span><span style=display:flex><span>           │               │
+</span></span><span style=display:flex><span>           └───────┬───────┘
+</span></span><span style=display:flex><span>                   ▼
+</span></span><span style=display:flex><span>               llama.cpp
+</span></span></code></pre></div><p>This makes it possible to experiment with models that would otherwise exceed the available VRAM. (<a href="https://github.com/ggml-org/llama.cpp?pubDate=20260313&amp;utm_source=chatgpt.com" title="GitHub - ggml-org/llama.cpp: LLM inference in C/C++ · GitHub">GitHub</a>)</p><p>For a local AI enthusiast, developer, researcher or edge deployment, this is extremely powerful.</p><hr><h1 id=5-llamacpp-can-also-run-an-api-server>5. llama.cpp Can Also Run an API Server</h1><p>There is another misconception worth clearing up.</p><p>llama.cpp isn&rsquo;t merely a command-line program.</p><p>It provides a server interface that can expose an OpenAI-compatible API.</p><p>For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                 Application
+</span></span><span style=display:flex><span>                      │
+</span></span><span style=display:flex><span>                      │ HTTP API
+</span></span><span style=display:flex><span>                      ▼
+</span></span><span style=display:flex><span>               ┌──────────────┐
+</span></span><span style=display:flex><span>               │ llama-server │
+</span></span><span style=display:flex><span>               └──────┬───────┘
+</span></span><span style=display:flex><span>                      │
+</span></span><span style=display:flex><span>                  GGUF Model
+</span></span><span style=display:flex><span>                      │
+</span></span><span style=display:flex><span>                CPU / GPU
+</span></span></code></pre></div><p>So you can build applications or agents on top of llama.cpp without embedding the inference runtime directly into your application. (<a href="https://github.com/ggml-org/llama.cpp?pubDate=20260313&amp;utm_source=chatgpt.com" title="GitHub - ggml-org/llama.cpp: LLM inference in C/C++ · GitHub">GitHub</a>)</p><p>This raises an important question:</p><blockquote><p>If llama.cpp can serve multiple requests through an API, why do we need something like vLLM?</p></blockquote><p>The answer is <strong>scale and workload characteristics</strong>.</p><hr><h1 id=6-the-problem-changes-at-high-concurrency>6. The Problem Changes at High Concurrency</h1><p>Consider a local application:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>User
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>llama.cpp
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>GPU
+</span></span></code></pre></div><p>Now compare that with an LLM API service:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>User 1 ────┐
+</span></span><span style=display:flex><span>User 2 ────┤
+</span></span><span style=display:flex><span>User 3 ────┤
+</span></span><span style=display:flex><span>User 4 ────┤
+</span></span><span style=display:flex><span>User 5 ────┤
+</span></span><span style=display:flex><span>   ...     │
+</span></span><span style=display:flex><span>User 999 ──┤
+</span></span><span style=display:flex><span>User 1000 ─┘
+</span></span><span style=display:flex><span>             │
+</span></span><span style=display:flex><span>             ▼
+</span></span><span style=display:flex><span>          LLM Server
+</span></span><span style=display:flex><span>             │
+</span></span><span style=display:flex><span>             ▼
+</span></span><span style=display:flex><span>          GPU Pool
+</span></span></code></pre></div><p>Each request can have a different:</p><ul><li>prompt length</li><li>output length</li><li>arrival time</li><li>context length</li><li>generation speed</li><li>priority</li></ul><p>The GPU therefore needs to be treated as a <strong>shared, dynamically scheduled compute resource</strong>.</p><p>This is where modern LLM serving systems become interesting.</p><hr><h1 id=7-continuous-batching>7. Continuous Batching</h1><p>Traditional batch processing might look like:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Batch 1
+</span></span><span style=display:flex><span>──────────────────────────────
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Request A █████████████████
+</span></span><span style=display:flex><span>Request B ███████
+</span></span><span style=display:flex><span>Request C █████████████
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            ↓
+</span></span><span style=display:flex><span>       Wait for all
+</span></span><span style=display:flex><span>            ↓
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Batch 2
+</span></span><span style=display:flex><span>──────────────────────────────
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Request D █████
+</span></span><span style=display:flex><span>Request E ███████████
+</span></span></code></pre></div><p>The problem is obvious.</p><p>Request B may finish long before Request A, but the traditional batch may still be waiting for the slowest request.</p><p>LLM generation is especially well suited to a different approach:</p><blockquote><p><strong>Continuous batching.</strong></p></blockquote><p>Conceptually:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Time ─────────────────────────────────────────&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>A   ███████████████████
+</span></span><span style=display:flex><span>B     ███████
+</span></span><span style=display:flex><span>C       █████████████
+</span></span><span style=display:flex><span>D          █████
+</span></span><span style=display:flex><span>E             ███████████
+</span></span><span style=display:flex><span>F                 ██████
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        ↑       ↑
+</span></span><span style=display:flex><span>     requests enter/leave
+</span></span><span style=display:flex><span>       the active batch
+</span></span></code></pre></div><p>The scheduler continuously adjusts the active set of sequences.</p><p>Instead of thinking:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>batch → execute → finish → next batch
+</span></span></code></pre></div><p>we can think:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>arrive → schedule → generate
+</span></span><span style=display:flex><span>          ↑   ↓
+</span></span><span style=display:flex><span>       dynamically
+</span></span><span style=display:flex><span>        update
+</span></span></code></pre></div><p>This keeps the accelerator busy with useful work.</p><p>vLLM lists continuous batching as one of its core serving capabilities. (<a href="https://docs.vllm.cc/en/latest/index.html?utm_source=chatgpt.com" title="vLLM - vLLM">vLLM</a>)</p><hr><h1 id=8-the-real-memory-problem-kv-cache>8. The Real Memory Problem: KV Cache</h1><p>There is another major obstacle to high-concurrency LLM serving.</p><p>It is not just the model weights.</p><p>It is the <strong>KV cache</strong>.</p><p>During autoregressive generation, the model maintains key/value states associated with previously processed tokens.</p><p>For one request:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Prompt
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>Token 1
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>Token 2
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>Token 3
+</span></span><span style=display:flex><span>  │
+</span></span><span style=display:flex><span>  ▼
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>The corresponding KV data needs to remain available during generation.</p><p>With one request:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>GPU Memory
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>┌───────────────────────────────┐
+</span></span><span style=display:flex><span>│ Model Weights                 │
+</span></span><span style=display:flex><span>├───────────────────────────────┤
+</span></span><span style=display:flex><span>│ Request A KV Cache            │
+</span></span><span style=display:flex><span>└───────────────────────────────┘
+</span></span></code></pre></div><p>With hundreds of requests:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>GPU Memory
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>┌───────────────────────────────┐
+</span></span><span style=display:flex><span>│ Model Weights                 │
+</span></span><span style=display:flex><span>├───────────────────────────────┤
+</span></span><span style=display:flex><span>│ Request A KV                  │
+</span></span><span style=display:flex><span>│ Request B KV                  │
+</span></span><span style=display:flex><span>│ Request C KV                  │
+</span></span><span style=display:flex><span>│ Request D KV                  │
+</span></span><span style=display:flex><span>│ ...                           │
+</span></span><span style=display:flex><span>│ Request N KV                  │
+</span></span><span style=display:flex><span>└───────────────────────────────┘
+</span></span></code></pre></div><p>The KV cache can become a significant memory consumer.</p><p>And because requests have different sequence lengths and lifetimes, managing that memory efficiently becomes a central serving problem.</p><hr><h1 id=9-pagedattention>9. PagedAttention</h1><p>This is where vLLM&rsquo;s original research contribution becomes particularly interesting.</p><p>The PagedAttention paper describes a KV-cache management approach inspired by virtual memory and paging in operating systems. Instead of requiring each request&rsquo;s KV cache to occupy one large contiguous memory region, KV data can be managed using smaller blocks. (<a href="https://doi.org/10.1145/3600006.3613165?utm_source=chatgpt.com" title="Efficient Memory Management for Large Language Model Serving with PagedAttention | Proceedings of the 29th Symposium on Operating Systems Principles">DOI</a>)</p><p>Conceptually:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>GPU Memory
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>┌──────┬──────┬──────┬──────┬──────┬──────┐
+</span></span><span style=display:flex><span>│ A1   │ C1   │ B1   │ A2   │ D1   │ C2   │
+</span></span><span style=display:flex><span>├──────┼──────┼──────┼──────┼──────┼──────┤
+</span></span><span style=display:flex><span>│ B2   │ A3   │ E1   │ C3   │ D2   │ ...  │
+</span></span><span style=display:flex><span>└──────┴──────┴──────┴──────┴──────┴──────┘
+</span></span></code></pre></div><p>A logical request can then reference its blocks:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Request A
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ├── A1
+</span></span><span style=display:flex><span>   ├── A2
+</span></span><span style=display:flex><span>   └── A3
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Request C
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ├── C1
+</span></span><span style=display:flex><span>   ├── C2
+</span></span><span style=display:flex><span>   └── C3
+</span></span></code></pre></div><p>This allows the inference engine to use GPU memory more flexibly and enables sharing of KV-cache blocks in appropriate scenarios.</p><p>The original vLLM research reported substantial throughput improvements over contemporary serving systems, particularly as sequences and models became larger. (<a href="https://doi.org/10.1145/3600006.3613165?utm_source=chatgpt.com" title="Efficient Memory Management for Large Language Model Serving with PagedAttention | Proceedings of the 29th Symposium on Operating Systems Principles">DOI</a>)</p><hr><h1 id=10-vllm-from-runtime-to-serving-engine>10. vLLM: From Runtime to Serving Engine</h1><p>At this point we can see the conceptual difference.</p><p>llama.cpp primarily asks:</p><blockquote><p><strong>How do I execute an LLM efficiently on this machine?</strong></p></blockquote><p>vLLM asks:</p><blockquote><p><strong>How do I efficiently execute many LLM requests on this GPU?</strong></p></blockquote><p>A simplified vLLM worker looks like:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                    vLLM Worker
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>              ┌──────────┴──────────┐
+</span></span><span style=display:flex><span>              │                     │
+</span></span><span style=display:flex><span>              ▼                     ▼
+</span></span><span style=display:flex><span>       Request Scheduler        Model Executor
+</span></span><span style=display:flex><span>              │                     │
+</span></span><span style=display:flex><span>              │              ┌──────┴──────┐
+</span></span><span style=display:flex><span>              │              │             │
+</span></span><span style=display:flex><span>              │          Model Weights   KV Cache
+</span></span><span style=display:flex><span>              │
+</span></span><span style=display:flex><span>              └──────────────┬──────────────
+</span></span><span style=display:flex><span>                             ▼
+</span></span><span style=display:flex><span>                            GPU
+</span></span></code></pre></div><p>The actual vLLM architecture is significantly more sophisticated, but this mental model captures the important idea:</p><blockquote><p><strong>The inference engine is actively managing requests, memory and GPU execution as one serving system.</strong></p></blockquote><p>vLLM currently combines continuous batching with optimized attention memory management, optimized kernels, quantization, prefix caching and multiple forms of distributed parallelism. (<a href="https://docs.vllm.cc/en/latest/index.html?utm_source=chatgpt.com" title="vLLM - vLLM">vLLM</a>)</p><hr><h1 id=11-one-gpu-quickly-becomes-many-gpus>11. One GPU Quickly Becomes Many GPUs</h1><p>Large models often cannot fit onto a single GPU.</p><p>Suppose we have:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                 Large Model
+</span></span><span style=display:flex><span>                     │
+</span></span><span style=display:flex><span>          ┌──────────┼──────────┐
+</span></span><span style=display:flex><span>          ▼          ▼          ▼
+</span></span><span style=display:flex><span>        GPU 0      GPU 1      GPU 2
+</span></span></code></pre></div><p>Now the inference engine must coordinate computation across GPUs.</p><p>vLLM supports multiple distributed inference strategies, including tensor, pipeline, data and expert parallelism. (<a href="https://docs.vllm.cc/en/latest/index.html?utm_source=chatgpt.com" title="vLLM - vLLM">vLLM</a>)</p><p>A simplified example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                 vLLM
+</span></span><span style=display:flex><span>                   │
+</span></span><span style=display:flex><span>          ┌────────┼────────┐
+</span></span><span style=display:flex><span>          ▼        ▼        ▼
+</span></span><span style=display:flex><span>        GPU 0    GPU 1    GPU 2
+</span></span><span style=display:flex><span>          │        │        │
+</span></span><span style=display:flex><span>          └────────┼────────┘
+</span></span><span style=display:flex><span>                   │
+</span></span><span style=display:flex><span>             GPU Interconnect
+</span></span></code></pre></div><p>The challenge is no longer just model execution.</p><p>It becomes:</p><blockquote><p><strong>How do we efficiently coordinate a distributed GPU computation?</strong></p></blockquote><hr><h1 id=12-from-one-vllm-process-to-a-gpu-fleet>12. From One vLLM Process to a GPU Fleet</h1><p>Now imagine that we&rsquo;re not running one model.</p><p>We&rsquo;re operating an LLM service.</p><p>We might have:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                    GPU Fleet
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>       ┌────────┬────────┬────────┬────────┐
+</span></span><span style=display:flex><span>       │        │        │        │        │
+</span></span><span style=display:flex><span>      Node 1   Node 2   Node 3   Node 4   ...
+</span></span><span style=display:flex><span>       │        │        │        │
+</span></span><span style=display:flex><span>      GPU      GPU      GPU      GPU
+</span></span></code></pre></div><p>And perhaps:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Qwen Cluster
+</span></span><span style=display:flex><span>    └── vLLM replicas
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Llama Cluster
+</span></span><span style=display:flex><span>    └── vLLM replicas
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>DeepSeek Cluster
+</span></span><span style=display:flex><span>    └── vLLM replicas
+</span></span></code></pre></div><p>At this point, <strong>vLLM alone is no longer enough</strong>.</p><p>We need orchestration.</p><hr><h1 id=13-kubernetes-managing-the-infrastructure>13. Kubernetes: Managing the Infrastructure</h1><p>This is where Kubernetes commonly enters the architecture.</p><p>It is important to understand the division of responsibilities:</p><blockquote><p><strong>Kubernetes manages infrastructure and workloads.</strong></p></blockquote><blockquote><p><strong>vLLM manages LLM inference.</strong></p></blockquote><p>For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                 Kubernetes Cluster
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>          ┌──────────────┼──────────────┐
+</span></span><span style=display:flex><span>          ▼              ▼              ▼
+</span></span><span style=display:flex><span>       GPU Node        GPU Node        GPU Node
+</span></span><span style=display:flex><span>          │              │              │
+</span></span><span style=display:flex><span>       vLLM Pod        vLLM Pod        vLLM Pod
+</span></span><span style=display:flex><span>          │              │              │
+</span></span><span style=display:flex><span>       Model A         Model A         Model B
+</span></span></code></pre></div><p>Kubernetes can handle things such as:</p><ul><li>workload scheduling</li><li>service discovery</li><li>health management</li><li>deployment</li><li>rolling upgrades</li><li>failure recovery</li><li>autoscaling</li></ul><p>But LLM workloads make GPU scheduling considerably more complicated than ordinary CPU workloads.</p><hr><h1 id=14-gpu-scheduling-is-not-just-cpu-scheduling>14. GPU Scheduling Is Not Just CPU Scheduling</h1><p>Imagine two workloads.</p><h3 id=workload-a>Workload A</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Model A
+</span></span><span style=display:flex><span>1 GPU
+</span></span></code></pre></div><h3 id=workload-b>Workload B</h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Model B
+</span></span><span style=display:flex><span>8 GPUs
+</span></span><span style=display:flex><span>Tensor Parallel
+</span></span></code></pre></div><p>The scheduler cannot treat them as equivalent workloads.</p><p>For Workload A:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Node 1
+</span></span><span style=display:flex><span>┌─────┐
+</span></span><span style=display:flex><span>│ GPU │ ← enough
+</span></span><span style=display:flex><span>└─────┘
+</span></span></code></pre></div><p>For Workload B:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Node
+</span></span><span style=display:flex><span>┌─────┬─────┬─────┬─────┐
+</span></span><span style=display:flex><span>│ GPU │ GPU │ GPU │ GPU │
+</span></span><span style=display:flex><span>├─────┼─────┼─────┼─────┤
+</span></span><span style=display:flex><span>│ GPU │ GPU │ GPU │ GPU │
+</span></span><span style=display:flex><span>└─────┴─────┴─────┴─────┘
+</span></span></code></pre></div><p>The placement of those GPUs can matter because of:</p><ul><li>GPU memory</li><li>GPU type</li><li>NVLink topology</li><li>PCIe topology</li><li>NUMA topology</li><li>inter-GPU bandwidth</li><li>model parallelism requirements</li></ul><p>Therefore, at large scale, the platform needs to become increasingly <strong>GPU- and workload-aware</strong>.</p><hr><h1 id=15-the-maas-layer>15. The MaaS Layer</h1><p>Now we finally reach the actual <strong>Model-as-a-Service</strong> platform.</p><p>A customer doesn&rsquo;t want to know:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Which Kubernetes node?
+</span></span><span style=display:flex><span>Which GPU?
+</span></span><span style=display:flex><span>Which vLLM pod?
+</span></span><span style=display:flex><span>Which model replica?
+</span></span></code></pre></div><p>They simply want:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>POST /v1/chat/completions
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>model = qwen3-32b
+</span></span></code></pre></div><p>The platform hides the infrastructure.</p><p>Conceptually:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                         Customer
+</span></span><span style=display:flex><span>                            │
+</span></span><span style=display:flex><span>                            ▼
+</span></span><span style=display:flex><span>                     API Gateway
+</span></span><span style=display:flex><span>                            │
+</span></span><span style=display:flex><span>                            ▼
+</span></span><span style=display:flex><span>                      Model Router
+</span></span><span style=display:flex><span>                            │
+</span></span><span style=display:flex><span>                            ▼
+</span></span><span style=display:flex><span>                       Inference
+</span></span><span style=display:flex><span>                            │
+</span></span><span style=display:flex><span>                            ▼
+</span></span><span style=display:flex><span>                           GPU
+</span></span></code></pre></div><p>This abstraction is the essence of MaaS.</p><hr><h1 id=16-api-gateway>16. API Gateway</h1><p>The first platform layer usually deals with the customer-facing API.</p><p>For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Customer
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>┌──────────────────────┐
+</span></span><span style=display:flex><span>│     API Gateway      │
+</span></span><span style=display:flex><span>├──────────────────────┤
+</span></span><span style=display:flex><span>│ Authentication       │
+</span></span><span style=display:flex><span>│ API Keys             │
+</span></span><span style=display:flex><span>│ Rate Limiting        │
+</span></span><span style=display:flex><span>│ Quotas               │
+</span></span><span style=display:flex><span>│ Request Validation   │
+</span></span><span style=display:flex><span>│ TLS                  │
+</span></span><span style=display:flex><span>└──────────┬───────────┘
+</span></span><span style=display:flex><span>           │
+</span></span><span style=display:flex><span>           ▼
+</span></span></code></pre></div><p>The gateway answers:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Who is this customer?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Are they allowed to use this model?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Are they within quota?
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Are they exceeding their rate limit?
+</span></span></code></pre></div><p>This is already outside the scope of an inference engine.</p><hr><h1 id=17-model-routing>17. Model Routing</h1><p>The next layer is the <strong>model router</strong>.</p><p>Suppose the customer asks for:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>model = qwen3-32b
+</span></span></code></pre></div><p>There might be dozens or hundreds of replicas behind that logical model name.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                       Model Router
+</span></span><span style=display:flex><span>                            │
+</span></span><span style=display:flex><span>              ┌─────────────┼─────────────┐
+</span></span><span style=display:flex><span>              ▼             ▼             ▼
+</span></span><span style=display:flex><span>          Qwen Pod       Qwen Pod       Qwen Pod
+</span></span><span style=display:flex><span>             │              │              │
+</span></span><span style=display:flex><span>           vLLM            vLLM            vLLM
+</span></span><span style=display:flex><span>             │              │              │
+</span></span><span style=display:flex><span>           GPU              GPU             GPU
+</span></span></code></pre></div><p>The router may consider:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Requested model
+</span></span><span style=display:flex><span>       │
+</span></span><span style=display:flex><span>       ├── Model availability
+</span></span><span style=display:flex><span>       ├── Replica health
+</span></span><span style=display:flex><span>       ├── Queue depth
+</span></span><span style=display:flex><span>       ├── GPU utilization
+</span></span><span style=display:flex><span>       ├── Latency
+</span></span><span style=display:flex><span>       ├── Region
+</span></span><span style=display:flex><span>       ├── Tenant priority
+</span></span><span style=display:flex><span>       └── Capacity
+</span></span></code></pre></div><p>This is an important architectural boundary.</p><p><strong>The customer sees a logical model.</strong></p><p><strong>The platform decides which physical inference worker should execute the request.</strong></p><hr><h1 id=18-control-plane-vs-data-plane>18. Control Plane vs Data Plane</h1><p>At this point, a production MaaS architecture naturally separates into two major domains.</p><h2 id=control-plane>Control Plane</h2><p>The control plane decides:</p><blockquote><p><strong>What should be running, where should it run, and how should it be configured?</strong></p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                  Control Plane
+</span></span><span style=display:flex><span>                       │
+</span></span><span style=display:flex><span>       ┌───────────────┼────────────────┐
+</span></span><span style=display:flex><span>       ▼               ▼                ▼
+</span></span><span style=display:flex><span> Model Registry    Deployment       Scheduler
+</span></span><span style=display:flex><span>       │            Manager             │
+</span></span><span style=display:flex><span>       ▼               ▼                ▼
+</span></span><span style=display:flex><span> Model Versions   Autoscaling      GPU Placement
+</span></span><span style=display:flex><span>       │               │                │
+</span></span><span style=display:flex><span>       └───────────────┼────────────────┘
+</span></span><span style=display:flex><span>                       │
+</span></span><span style=display:flex><span>                       ▼
+</span></span><span style=display:flex><span>                    GPU Fleet
+</span></span></code></pre></div><hr><h2 id=data-plane>Data Plane</h2><p>The data plane handles the actual customer inference traffic.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                   Data Plane
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Customer
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>API Gateway
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>Model Router
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>Inference Worker
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>vLLM / SGLang / TRT-LLM
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>GPU
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>Generated Tokens
+</span></span></code></pre></div><p>This separation is fundamental to scalable distributed systems.</p><p>The control plane manages the <strong>state of the platform</strong>.</p><p>The data plane handles the <strong>traffic flowing through the platform</strong>.</p><hr><h1 id=19-a-complete-llm-maas-architecture>19. A Complete LLM MaaS Architecture</h1><p>We can now put all the pieces together.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                              Internet
+</span></span><span style=display:flex><span>                                  │
+</span></span><span style=display:flex><span>                                  ▼
+</span></span><span style=display:flex><span>                       ┌────────────────────┐
+</span></span><span style=display:flex><span>                       │    API Gateway     │
+</span></span><span style=display:flex><span>                       │                    │
+</span></span><span style=display:flex><span>                       │ Auth / TLS         │
+</span></span><span style=display:flex><span>                       │ Rate Limit         │
+</span></span><span style=display:flex><span>                       │ Quota              │
+</span></span><span style=display:flex><span>                       └─────────┬──────────┘
+</span></span><span style=display:flex><span>                                 │
+</span></span><span style=display:flex><span>                                 ▼
+</span></span><span style=display:flex><span>                       ┌────────────────────┐
+</span></span><span style=display:flex><span>                       │    Model Router    │
+</span></span><span style=display:flex><span>                       │                    │
+</span></span><span style=display:flex><span>                       │ Model Selection    │
+</span></span><span style=display:flex><span>                       │ Load Balancing     │
+</span></span><span style=display:flex><span>                       │ Routing Policy     │
+</span></span><span style=display:flex><span>                       └─────────┬──────────┘
+</span></span><span style=display:flex><span>                                 │
+</span></span><span style=display:flex><span>                ┌────────────────┼────────────────┐
+</span></span><span style=display:flex><span>                │                │                │
+</span></span><span style=display:flex><span>                ▼                ▼                ▼
+</span></span><span style=display:flex><span>          ┌──────────┐     ┌──────────┐     ┌──────────┐
+</span></span><span style=display:flex><span>          │  Qwen    │     │  Llama   │     │ DeepSeek │
+</span></span><span style=display:flex><span>          │  Pool    │     │  Pool    │     │  Pool    │
+</span></span><span style=display:flex><span>          └────┬─────┘     └────┬─────┘     └────┬─────┘
+</span></span><span style=display:flex><span>               │                │                │
+</span></span><span style=display:flex><span>           vLLM × N         vLLM × N         vLLM × N
+</span></span><span style=display:flex><span>               │                │                │
+</span></span><span style=display:flex><span>               └────────────────┼────────────────┘
+</span></span><span style=display:flex><span>                                │
+</span></span><span style=display:flex><span>                         ┌──────┴──────┐
+</span></span><span style=display:flex><span>                         │  GPU Fleet  │
+</span></span><span style=display:flex><span>                         └──────┬──────┘
+</span></span><span style=display:flex><span>                                │
+</span></span><span style=display:flex><span>                           Kubernetes
+</span></span><span style=display:flex><span>                                │
+</span></span><span style=display:flex><span>                                ▼
+</span></span><span style=display:flex><span>                         GPU Infrastructure
+</span></span></code></pre></div><p>And alongside it:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                    ┌────────────────────────┐
+</span></span><span style=display:flex><span>                    │     Control Plane      │
+</span></span><span style=display:flex><span>                    ├────────────────────────┤
+</span></span><span style=display:flex><span>                    │ Model Registry          │
+</span></span><span style=display:flex><span>                    │ Deployment Manager      │
+</span></span><span style=display:flex><span>                    │ Scheduler               │
+</span></span><span style=display:flex><span>                    │ Autoscaling             │
+</span></span><span style=display:flex><span>                    │ Capacity Management     │
+</span></span><span style=display:flex><span>                    │ Health Management        │
+</span></span><span style=display:flex><span>                    └───────────┬────────────┘
+</span></span><span style=display:flex><span>                                │
+</span></span><span style=display:flex><span>                                ▼
+</span></span><span style=display:flex><span>                           GPU Fleet
+</span></span></code></pre></div><p>This is much closer to what we should think of as a <strong>production LLM MaaS architecture</strong>.</p><hr><h1 id=20-billing-and-usage-accounting>20. Billing and Usage Accounting</h1><p>There is another layer that is easy to overlook.</p><p>MaaS isn&rsquo;t just an inference system.</p><p>It is also a commercial service.</p><p>The platform needs to know:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Customer
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>API Key
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ▼
+</span></span><span style=display:flex><span>Request
+</span></span><span style=display:flex><span>   │
+</span></span><span style=display:flex><span>   ├── Model
+</span></span><span style=display:flex><span>   ├── Input tokens
+</span></span><span style=display:flex><span>   ├── Output tokens
+</span></span><span style=display:flex><span>   ├── Latency
+</span></span><span style=display:flex><span>   ├── Region
+</span></span><span style=display:flex><span>   └── Status
+</span></span><span style=display:flex><span>          │
+</span></span><span style=display:flex><span>          ▼
+</span></span><span style=display:flex><span>     Usage Metering
+</span></span><span style=display:flex><span>          │
+</span></span><span style=display:flex><span>          ▼
+</span></span><span style=display:flex><span>        Billing
+</span></span></code></pre></div><p>For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Customer A
+</span></span><span style=display:flex><span> ├── 10M input tokens
+</span></span><span style=display:flex><span> ├── 2M output tokens
+</span></span><span style=display:flex><span> └── Qwen3-32B
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>Customer B
+</span></span><span style=display:flex><span> ├── 50M input tokens
+</span></span><span style=display:flex><span> ├── 8M output tokens
+</span></span><span style=display:flex><span> └── Llama model
+</span></span></code></pre></div><p>The inference layer produces the raw execution metrics.</p><p>The MaaS platform turns those metrics into:</p><ul><li>usage</li><li>quotas</li><li>invoices</li><li>dashboards</li><li>cost attribution</li></ul><p>Again, this functionality sits <strong>above the inference engine</strong>.</p><hr><h1 id=21-why-a-maas-provider-may-use-more-than-vllm>21. Why a MaaS Provider May Use More Than vLLM</h1><p>It is tempting to say:</p><blockquote><p>&ldquo;Production LLM MaaS = Kubernetes + vLLM.&rdquo;</p></blockquote><p>That&rsquo;s a useful starting point, but it is not quite correct.</p><p>A real platform might have:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                    Model Router
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>          ┌──────────────┼──────────────┐
+</span></span><span style=display:flex><span>          ▼              ▼              ▼
+</span></span><span style=display:flex><span>        Qwen           Llama         DeepSeek
+</span></span><span style=display:flex><span>          │              │              │
+</span></span><span style=display:flex><span>        vLLM           SGLang       TensorRT-LLM
+</span></span><span style=display:flex><span>          │              │              │
+</span></span><span style=display:flex><span>       GPU Pool       GPU Pool       GPU Pool
+</span></span></code></pre></div><p>Different inference engines can have different advantages depending on:</p><ul><li>model architecture</li><li>accelerator</li><li>workload</li><li>quantization</li><li>latency requirements</li><li>throughput requirements</li><li>parallelism strategy</li></ul><p>The important architectural principle is:</p><blockquote><p><strong>The MaaS platform should abstract the inference engine from the customer.</strong></p></blockquote><p>The customer asks for:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>model = qwen3-32b
+</span></span></code></pre></div><p>They shouldn&rsquo;t need to care whether the backend happens to be:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>vLLM
+</span></span><span style=display:flex><span>SGLang
+</span></span><span style=display:flex><span>TensorRT-LLM
+</span></span></code></pre></div><hr><h1 id=22-agentic-ai-changes-the-workload>22. Agentic AI Changes the Workload</h1><p>This architecture becomes even more interesting when we move from traditional chat applications to <strong>AI agents</strong>.</p><p>A traditional application might look like:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>User
+</span></span><span style=display:flex><span> │
+</span></span><span style=display:flex><span> ▼
+</span></span><span style=display:flex><span>LLM
+</span></span><span style=display:flex><span> │
+</span></span><span style=display:flex><span> ▼
+</span></span><span style=display:flex><span>Response
+</span></span></code></pre></div><p>An agentic application looks more like:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                         Agent
+</span></span><span style=display:flex><span>                           │
+</span></span><span style=display:flex><span>             ┌─────────────┼─────────────┐
+</span></span><span style=display:flex><span>             ▼             ▼             ▼
+</span></span><span style=display:flex><span>          LLM Call      Tool Call      LLM Call
+</span></span><span style=display:flex><span>                           │
+</span></span><span style=display:flex><span>                           ▼
+</span></span><span style=display:flex><span>                          RAG
+</span></span><span style=display:flex><span>                           │
+</span></span><span style=display:flex><span>                           ▼
+</span></span><span style=display:flex><span>                        LLM Call
+</span></span><span style=display:flex><span>                           │
+</span></span><span style=display:flex><span>                           ▼
+</span></span><span style=display:flex><span>                       Tool Call
+</span></span><span style=display:flex><span>                           │
+</span></span><span style=display:flex><span>                           ▼
+</span></span><span style=display:flex><span>                        LLM Call
+</span></span><span style=display:flex><span>                           │
+</span></span><span style=display:flex><span>                           ▼
+</span></span><span style=display:flex><span>                       Response
+</span></span></code></pre></div><p>One user request can generate many LLM requests.</p><p>Now imagine thousands or millions of agents operating concurrently.</p><p>The workload becomes:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Agent 1 ─┐
+</span></span><span style=display:flex><span>Agent 2 ─┤
+</span></span><span style=display:flex><span>Agent 3 ─┤
+</span></span><span style=display:flex><span>Agent 4 ─┤
+</span></span><span style=display:flex><span>Agent 5 ─┤
+</span></span><span style=display:flex><span>   ...   │
+</span></span><span style=display:flex><span>Agent N ─┘
+</span></span><span style=display:flex><span>          │
+</span></span><span style=display:flex><span>          ▼
+</span></span><span style=display:flex><span>    Model Router
+</span></span><span style=display:flex><span>          │
+</span></span><span style=display:flex><span>          ▼
+</span></span><span style=display:flex><span>   Inference Fleet
+</span></span><span style=display:flex><span>          │
+</span></span><span style=display:flex><span>          ▼
+</span></span><span style=display:flex><span>        GPUs
+</span></span></code></pre></div><p>This makes efficient scheduling increasingly important.</p><p>The optimization target is no longer simply:</p><blockquote><p><strong>How many tokens per second can one request generate?</strong></p></blockquote><p>It becomes:</p><blockquote><p><strong>How efficiently can the platform schedule millions of dynamically arriving inference workloads across a finite GPU fleet?</strong></p></blockquote><hr><h1 id=23-the-architecture-is-really-about-resource-management>23. The Architecture Is Really About Resource Management</h1><p>This leads to a broader way of thinking about LLM infrastructure.</p><p>At the bottom:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>             GPU
+</span></span><span style=display:flex><span>              │
+</span></span><span style=display:flex><span>              ▼
+</span></span><span style=display:flex><span>        Model Execution
+</span></span></code></pre></div><p>Then:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>             vLLM
+</span></span><span style=display:flex><span>              │
+</span></span><span style=display:flex><span>              ▼
+</span></span><span style=display:flex><span>      Request Scheduling
+</span></span><span style=display:flex><span>      KV Cache Management
+</span></span><span style=display:flex><span>      Batch Management
+</span></span></code></pre></div><p>Then:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>          MaaS Platform
+</span></span><span style=display:flex><span>              │
+</span></span><span style=display:flex><span>              ▼
+</span></span><span style=display:flex><span>       Model Routing
+</span></span><span style=display:flex><span>       Tenant Management
+</span></span><span style=display:flex><span>       Usage / Billing
+</span></span><span style=display:flex><span>       Capacity Management
+</span></span></code></pre></div><p>Then:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>         Infrastructure
+</span></span><span style=display:flex><span>              │
+</span></span><span style=display:flex><span>              ▼
+</span></span><span style=display:flex><span>       Kubernetes / Scheduler
+</span></span><span style=display:flex><span>              │
+</span></span><span style=display:flex><span>              ▼
+</span></span><span style=display:flex><span>            GPU Fleet
+</span></span></code></pre></div><p>The problem therefore evolves from:</p><blockquote><p><strong>Compute the next token</strong></p></blockquote><p>to:</p><blockquote><p><strong>Schedule the next token</strong></p></blockquote><p>and ultimately to:</p><blockquote><p><strong>Schedule the right computation on the right GPU for the right customer at the right time.</strong></p></blockquote><p>That is a much more interesting distributed-systems problem.</p><hr><h1 id=24-three-levels-of-llm-infrastructure>24. Three Levels of LLM Infrastructure</h1><p>The entire evolution can be summarized in three stages.</p><h2 id=level-1--run-the-model>Level 1 — Run the Model</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                 Model
+</span></span><span style=display:flex><span>                   │
+</span></span><span style=display:flex><span>                   ▼
+</span></span><span style=display:flex><span>              llama.cpp
+</span></span><span style=display:flex><span>                   │
+</span></span><span style=display:flex><span>                   ▼
+</span></span><span style=display:flex><span>               CPU / GPU
+</span></span></code></pre></div><p>The question:</p><blockquote><p><strong>Can I run this model efficiently?</strong></p></blockquote><p>Typical scenarios:</p><ul><li>local AI</li><li>development</li><li>experimentation</li><li>personal assistants</li><li>edge inference</li><li>CPU inference</li><li>Apple Silicon</li><li>consumer GPUs</li></ul><hr><h2 id=level-2--serve-the-model>Level 2 — Serve the Model</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>              Multiple Users
+</span></span><span style=display:flex><span>                    │
+</span></span><span style=display:flex><span>                    ▼
+</span></span><span style=display:flex><span>                  vLLM
+</span></span><span style=display:flex><span>                    │
+</span></span><span style=display:flex><span>                    ▼
+</span></span><span style=display:flex><span>                 GPU(s)
+</span></span></code></pre></div><p>The question:</p><blockquote><p><strong>Can I efficiently serve concurrent requests?</strong></p></blockquote><p>Typical concerns:</p><ul><li>continuous batching</li><li>KV-cache efficiency</li><li>GPU utilization</li><li>latency</li><li>throughput</li><li>multi-GPU inference</li></ul><hr><h2 id=level-3--operate-an-llm-platform>Level 3 — Operate an LLM Platform</h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                     Customers
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>                         ▼
+</span></span><span style=display:flex><span>                   API Gateway
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>                         ▼
+</span></span><span style=display:flex><span>                   Model Router
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>              ┌──────────┼──────────┐
+</span></span><span style=display:flex><span>              ▼          ▼          ▼
+</span></span><span style=display:flex><span>            vLLM       SGLang    TRT-LLM
+</span></span><span style=display:flex><span>              │          │          │
+</span></span><span style=display:flex><span>              └──────────┼──────────┘
+</span></span><span style=display:flex><span>                         ▼
+</span></span><span style=display:flex><span>                     GPU Fleet
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>                    Kubernetes
+</span></span><span style=display:flex><span>                         │
+</span></span><span style=display:flex><span>                         ▼
+</span></span><span style=display:flex><span>                  Infrastructure
+</span></span></code></pre></div><p>The question becomes:</p><blockquote><p><strong>Can I turn a fleet of expensive accelerators into a reliable, scalable, multi-tenant inference service?</strong></p></blockquote><hr><h1 id=25-the-mental-model>25. The Mental Model</h1><p>A useful way to visualize the entire stack is:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>┌─────────────────────────────────────────────────────┐
+</span></span><span style=display:flex><span>│                   AI Applications                   │
+</span></span><span style=display:flex><span>│        Chat / RAG / Coding / Agents / VLM          │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│                    MaaS Platform                    │
+</span></span><span style=display:flex><span>│  API / Auth / Quota / Billing / Routing / Metering │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│                 Inference Serving                   │
+</span></span><span style=display:flex><span>│       vLLM / SGLang / TensorRT-LLM / ...           │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│               GPU Orchestration                     │
+</span></span><span style=display:flex><span>│     Kubernetes / Scheduler / Autoscaling            │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│                 GPU Infrastructure                  │
+</span></span><span style=display:flex><span>│           NVIDIA / AMD / Other Accelerators         │
+</span></span><span style=display:flex><span>└─────────────────────────────────────────────────────┘
+</span></span></code></pre></div><p>At the other end of the spectrum:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>┌─────────────────────────────────────────────────────┐
+</span></span><span style=display:flex><span>│                     Local AI                        │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│                    llama.cpp                        │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│                GGUF / Quantization                  │
+</span></span><span style=display:flex><span>├─────────────────────────────────────────────────────┤
+</span></span><span style=display:flex><span>│              CPU / GPU / Apple Silicon              │
+</span></span><span style=display:flex><span>└─────────────────────────────────────────────────────┘
+</span></span></code></pre></div><p>These aren&rsquo;t mutually exclusive technologies.</p><p>They represent different points in the inference stack and different optimization goals.</p><hr><h1 id=conclusion-from-running-models-to-operating-intelligence>Conclusion: From Running Models to Operating Intelligence</h1><p>The evolution from <strong>llama.cpp → vLLM → LLM MaaS</strong> is ultimately an evolution in the problem we are trying to solve.</p><p><strong>llama.cpp</strong> focuses on making powerful models executable across a remarkably broad range of hardware.</p><p><strong>vLLM</strong> focuses on turning GPU compute into highly efficient, concurrent LLM serving.</p><p><strong>An LLM MaaS platform</strong> goes one level further: it turns a fleet of accelerators and inference engines into a reliable, scalable, multi-tenant service.</p><p>The architecture eventually looks something like:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>                       LLM MaaS
+</span></span><span style=display:flex><span>                          │
+</span></span><span style=display:flex><span>        ┌─────────────────┼─────────────────┐
+</span></span><span style=display:flex><span>        │                 │                 │
+</span></span><span style=display:flex><span>    Product Plane     Control Plane      Data Plane
+</span></span><span style=display:flex><span>        │                 │                 │
+</span></span><span style=display:flex><span>        ▼                 ▼                 ▼
+</span></span><span style=display:flex><span>   API / Billing     Model Registry     Model Router
+</span></span><span style=display:flex><span>   Auth / Quota      Deployment         Inference
+</span></span><span style=display:flex><span>   Metering          Scheduling         vLLM
+</span></span><span style=display:flex><span>   Observability     Autoscaling        SGLang
+</span></span><span style=display:flex><span>                     Capacity           TRT-LLM
+</span></span><span style=display:flex><span>                                         │
+</span></span><span style=display:flex><span>                                         ▼
+</span></span><span style=display:flex><span>                                      GPU Fleet
+</span></span><span style=display:flex><span>                                         │
+</span></span><span style=display:flex><span>                                    Kubernetes
+</span></span></code></pre></div><p>And perhaps the most important lesson is this:</p><blockquote><p><strong>The hard part of LLM infrastructure is gradually moving from &ldquo;how do we execute the model?&rdquo; to &ldquo;how do we efficiently orchestrate computation, memory, networking and accelerators around the model?&rdquo;</strong></p></blockquote><p>For traditional chat applications, this already matters.</p><p>For agentic AI, it becomes even more important because a single user interaction can generate a cascade of inference, tool-calling and retrieval operations.</p><p>The future of LLM infrastructure therefore isn&rsquo;t just about building faster models.</p><p>It is about building <strong>better systems for turning GPU compute into intelligence on demand</strong>.</p><hr><h2 id=references>References</h2><ol><li><p><strong>llama.cpp</strong> — GGML/llama.cpp project and documentation.
+<a href="https://github.com/ggml-org/llama.cpp?utm_source=chatgpt.com">GitHub — llama.cpp</a></p></li><li><p><strong>vLLM Documentation</strong> — serving architecture, continuous batching, PagedAttention, quantization and distributed inference.
+<a href="https://docs.vllm.ai/?utm_source=chatgpt.com">vLLM Documentation</a></p></li><li><p><strong>Kwon et al., &ldquo;Efficient Memory Management for Large Language Model Serving with PagedAttention&rdquo;</strong>, SOSP 2023.
+<a href="https://doi.org/10.1145/3600006.3613165?utm_source=chatgpt.com">ACM Digital Library — PagedAttention Paper</a></p></li><li><p><strong>PagedAttention preprint</strong> — arXiv:2309.06180. (<a href="https://arxiv.org/abs/2309.06180?utm_source=chatgpt.com" title="Efficient Memory Management for Large Language Model Serving with PagedAttention">arXiv</a>)</p></li><li><p><strong>vLLM Project</strong> — official project site.
+<a href="https://vllm.ai/?utm_source=chatgpt.com">vLLM</a>
+:::</p></li></ol><p>One editorial change I&rsquo;d strongly recommend for the Medium version: <strong>make the six architecture diagrams actual visual figures rather than code-block diagrams</strong>. In particular, the <strong>PagedAttention</strong>, <strong>continuous batching</strong>, <strong>model router</strong>, and <strong>control-plane/data-plane</strong> diagrams deserve proper visual treatment; those are the parts readers are most likely to save/share.</p></div><div class="navigation navigation-single"><a href=/posts/ai-agent-harness/ class=navigation-prev><i aria-hidden=true class="fa fa-chevron-left"></i>
+<span class=navigation-tittle>Understanding AI agent harnesses: From agent loops to production runtimes</span></a></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(location.hostname==="localhost"||location.hostname==="127.0.0.1"||location.hostname==="")return;var t,e=document.createElement("script");e.type="text/javascript",e.async=!0,t="technicalnotesblog",e.src="//"+t+".disqus.com/embed.js",(document.getElementsByTagName("head")[0]||document.getElementsByTagName("body")[0]).appendChild(e)})()</script><noscript>Please enable JavaScript to view the
+<a href=http://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by
+<span class=logo-disqus>Disqus</span></a></article></div><script async src="https://www.googletagmanager.com/gtag/js?id=G-0XYLQMDWZ2"></script><script>var dnt,doNotTrack=!1;if(!1&&(dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes"),!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-0XYLQMDWZ2")}</script><script src=https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.4.0/highlight.min.js></script><script type=text/javascript>hljs.initHighlightingOnLoad()</script></body></html>
